@@ -28,7 +28,7 @@ find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
 set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(DEP_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps)
-set(GLM_DIR ${DEP_DIR}/glm-0.9.9.3/)
+set(GLM_DIR ${DEP_DIR}/glm-0.9.9.3)
 
 ## Add source files
 #file(GLOB_RECURSE SOURCE_FILES
@@ -41,8 +41,8 @@ set(GLM_DIR ${DEP_DIR}/glm-0.9.9.3/)
 #        ${CMAKE_SOURCE_DIR}/src/*.hpp)
 
 include_directories(${GLM_DIR}/glm)
-link_directories(${GLM_DIR}/glm)
-add_definitions(${GLM_DIR}/glm)
+#link_directories(${GLM_DIR}/glm)
+#add_definitions(${GLM_DIR}/glm)
 
 if(ANDROID)
   add_library(Rasterizer SHARED
@@ -57,6 +57,7 @@ else()
     ${SRC_DIR}/mainwindow.cpp
     ${SRC_DIR}/mainwindow.h
     ${SRC_DIR}/mainwindow.ui
+    ${SRC_DIR}/ray.h
   )
 endif()
 
