@@ -10,16 +10,6 @@
 //    inline Ray(glm::vec3 o0 = glm::vec3(0), glm::vec3 d0 = glm::vec3(0)) { o = o0, d = glm::normalize(d0); }
 //};
 
-
-// smallpaint by karoly zsolnai - zsolnai@cg.tuwien.ac.at
-//
-// render, modify, create new scenes, tinker around, and most of all:
-// have fun!
-//
-// This program is used as an educational learning tool on the Rendering
-// course at TU Wien. Course webpage:
-// http://cg.tuwien.ac.at/courses/Rendering/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
