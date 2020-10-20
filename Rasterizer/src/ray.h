@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <QImage>
 
 // Rays have origin and direction.
 // The direction vector should always be normalized.
@@ -27,6 +28,8 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <algorithm>
+#include <vector>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 #define RND (2.0*(double)rand()/RAND_MAX-1.0)
@@ -240,6 +243,19 @@ void trace(Ray &ray, const Scene& scene, int depth, Vec& clr, pl& params, Halton
         } else return;
     }
 }
+
+void imageOutput(Vec **pix, int s)
+{
+    QImage image(400,400, QImage::Format_RGB32);
+
+    for (int row = 0; row < 400; row++) {
+        for (int col = 0; col < 400; col++) {
+            image.setPixel(col, row, qRgb(min((int)pix[col][row].x / s, 255),min((int)pix[col][row].y / s, 255),min((int)pix[col][row].z / s, 255)));
+        }
+    }
+    image.save(QString::number(s) + "save.bmp", 0, -1);
+}
+
 void render(int id, int size, int spp, double refr_index) {
 
     srand(time(NULL));
@@ -282,7 +298,7 @@ void render(int id, int size, int spp, double refr_index) {
 
     bool running = true;
 
-    for (int s = 0; s < spp; s++) {
+    for (int s = 1; s < spp; s++) {
     #pragma omp parallel for schedule(dynamic) firstprivate(hal,hal2)
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
@@ -303,6 +319,8 @@ void render(int id, int size, int spp, double refr_index) {
             }
         }
         if (!running) return;
-        //imageOutput(pix, s);
+        imageOutput(pix, s);
+
     }
+
 }
