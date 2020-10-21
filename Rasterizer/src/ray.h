@@ -10,16 +10,6 @@
 //    inline Ray(glm::vec3 o0 = glm::vec3(0), glm::vec3 d0 = glm::vec3(0)) { o = o0, d = glm::normalize(d0); }
 //};
 
-
-// smallpaint by karoly zsolnai - zsolnai@cg.tuwien.ac.at
-//
-// render, modify, create new scenes, tinker around, and most of all:
-// have fun!
-//
-// This program is used as an educational learning tool on the Rendering
-// course at TU Wien. Course webpage:
-// http://cg.tuwien.ac.at/courses/Rendering/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -39,6 +29,7 @@
 #define PI 3.1415926536
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
+
 
 int width, height;
 const double inf = 1e9;
@@ -192,6 +183,7 @@ Vec hemisphere(double u1, double u2) {
     return Vec(cos(phi)*r, sin(phi)*r, u1);
 }
 
+//get per pixel info after intersection
 void trace(Ray &ray, const Scene& scene, int depth, Vec& clr, pl& params, Halton& hal, Halton& hal2) {
     if (depth >= 20) return;
 
@@ -205,7 +197,7 @@ void trace(Ray &ray, const Scene& scene, int depth, Vec& clr, pl& params, Halton
 
     clr = clr + Vec(intersection.object->emission, intersection.object->emission, intersection.object->emission) * 2;
 
-    if (intersection.object->type == 1) {
+    if (intersection.object->type == 1){
         hal.next();
         hal2.next();
         ray.d = (N + hemisphere(hal.get(), hal2.get()));
@@ -253,7 +245,19 @@ void imageOutput(Vec **pix, int s)
             image.setPixel(col, row, qRgb(min((int)pix[col][row].x / s, 255),min((int)pix[col][row].y / s, 255),min((int)pix[col][row].z / s, 255)));
         }
     }
-    image.save(QString::number(s) + "save.bmp", 0, -1);
+    image.save(QString::number(s) + "save.jpeg", 0, -1);
+}
+
+void imageOutput(Vec **pix)
+{
+    QImage image(400,400, QImage::Format_RGB32);
+
+    for (int row = 0; row < 400; row++) {
+        for (int col = 0; col < 400; col++) {
+            image.setPixel(col, row, qRgb(min((int)pix[col][row].x, 255),min((int)pix[col][row].y, 255),min((int)pix[col][row].z, 255)));
+        }
+    }
+    image.save("Finalsave.jpeg", 0, -1);
 }
 
 void render(int id, int size, int spp, double refr_index) {
@@ -320,7 +324,6 @@ void render(int id, int size, int spp, double refr_index) {
         }
         if (!running) return;
         imageOutput(pix, s);
-
     }
-
+    imageOutput(pix);
 }
