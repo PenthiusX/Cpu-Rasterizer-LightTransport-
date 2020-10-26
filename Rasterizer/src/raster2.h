@@ -4,6 +4,7 @@
 #include <time.h>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace Ras2{
 //-----------------------------------------------------------------------------------------------
@@ -11,16 +12,48 @@ class Cam {
 public:
     Cam(){
         camPos = glm::vec3(0);
-        camDir = glm::vec3(0,0,1);
+        camDir = glm::vec3(0,0,1);//direction camera is looking at
         camRight = glm::vec3(0);
         camDown = glm::vec3(0);
     }
-    ~Cam();
+    ~Cam(){};
 
     glm::vec3 camPos;
     glm::vec3 camDir;
     glm::vec3 camRight;
     glm::vec3 camDown;
+
+    void lookAt(glm::vec3 lookatPos){
+       camDir = glm::normalize(lookatPos - camPos);
+    }
+};
+//-----------------------------------------------------------------------------------------------
+class Color{
+public:
+    Color(){
+        r = 100;
+        g = 100;
+        b = 100;
+    }
+    Color(unsigned int re,unsigned int ge,unsigned int be){
+        r = re;
+        g = ge;
+        b = be;
+    }
+    ~Color(){};
+
+    float r,g,b;
+};
+//-----------------------------------------------------------------------------------------------
+class Light{
+public:
+    Light(){}
+    ~Light(){}
+
+    glm::vec3 pos;
+    glm::vec3 dir;
+
+    Color c;
 };
 //-----------------------------------------------------------------------------------------------
 class Ray{
@@ -29,7 +62,7 @@ public:
         origin = glm::vec3(0);
         dir = glm::vec3(1.0,0.0,0.0);
     }
-    ~Ray();
+    ~Ray(){};
 
     Ray(glm::vec3 o , glm::vec3 d){
         origin = o;
@@ -73,6 +106,14 @@ void render(){
 //    int dpi = 72;
     int n = width * height;
     RGBType *pixels  = new RGBType[n];
+
+    Cam c;
+    c.camPos = glm::vec3(3,1.5,-4);
+    c.lookAt(glm::vec3(0));
+    c.camRight = glm::vec3(1,0,0);
+    c.camDown = glm::vec3(0,-1,0);
+
+
 
     for(unsigned int x = 0 ; x < width ; x++){
         for(unsigned int y = 0 ; y < height; y++){
