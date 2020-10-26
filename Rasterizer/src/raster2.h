@@ -3,18 +3,54 @@
 #include <QImage>
 #include <time.h>
 
+#include <glm/glm.hpp>
+
 namespace Ras2{
+//-----------------------------------------------------------------------------------------------
+class Cam {
+public:
+    Cam(){
+        camPos = glm::vec3(0);
+        camDir = glm::vec3(0,0,1);
+        camRight = glm::vec3(0);
+        camDown = glm::vec3(0);
+    }
+    ~Cam();
+
+    glm::vec3 camPos;
+    glm::vec3 camDir;
+    glm::vec3 camRight;
+    glm::vec3 camDown;
+};
+//-----------------------------------------------------------------------------------------------
+class Ray{
+public:
+    Ray(){
+        origin = glm::vec3(0);
+        dir = glm::vec3(1.0,0.0,0.0);
+    }
+    ~Ray();
+
+    Ray(glm::vec3 o , glm::vec3 d){
+        origin = o;
+        dir = d;
+    }
+
+   glm::vec3 origin;
+   glm::vec3 dir;
+};
+//-----------------------------------------------------------------------------------------------
 struct RGBType {
     double r;
     double g;
     double b;
 };
-
+//-----------------------------------------------------------------------------------------------
 void saveBmp(unsigned int width , unsigned int height ,RGBType *data){
-    QImage image(400,400, QImage::Format_RGB32);
+    QImage image(width,height, QImage::Format_RGB32);
 
-    for (int x = 0; x < 400; x++) {
-        for (int y = 0; y < 400; y++) {
+    for (int x = 0; x < width; x++) {
+        for (int y = 0; y < height; y++) {
             unsigned int pos = y * width + x;
             RGBType rgb = data[pos];
 
@@ -29,7 +65,7 @@ void saveBmp(unsigned int width , unsigned int height ,RGBType *data){
     }
     image.save("Finalsave.jpeg", 0, -1);
 }
-
+//-----------------------------------------------------------------------------------------------
 void render(){
     unsigned int width =400;
     unsigned int height = 400;
@@ -41,9 +77,9 @@ void render(){
     for(unsigned int x = 0 ; x < width ; x++){
         for(unsigned int y = 0 ; y < height; y++){
 
-           unsigned int pos = y * width + x;
+           unsigned int pos = y*width + x;
 
-           if((x > 200 && x < 300)/* && (y > 200 && y < 280)*/){
+           if((x > 200 && x < 250)/* && (y > 200 && y < 280)*/){
                pixels[pos].r = 23;
                pixels[pos].g = 222;
                pixels[pos].b = 10;
@@ -58,6 +94,6 @@ void render(){
     }
     saveBmp(width,height,pixels);
 }
-
+//-----------------------------------------------------------------------------------------------
 }
 
