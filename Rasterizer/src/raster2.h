@@ -28,23 +28,6 @@ public:
     }
 };
 //-----------------------------------------------------------------------------------------------
-class Color{
-public:
-    Color(){
-        r = 100;
-        g = 100;
-        b = 100;
-    }
-    Color(unsigned int re,unsigned int ge,unsigned int be){
-        r = re;
-        g = ge;
-        b = be;
-    }
-    ~Color(){};
-
-    float r,g,b;
-};
-//-----------------------------------------------------------------------------------------------
 class Light{
 public:
     Light(){}
@@ -53,7 +36,7 @@ public:
     glm::vec3 pos;
     glm::vec3 dir;
 
-    Color c;
+    glm::vec3 col;
 };
 //-----------------------------------------------------------------------------------------------
 class Ray{
@@ -72,6 +55,50 @@ public:
    glm::vec3 origin;
    glm::vec3 dir;
 };
+//-----------------------------------------------------------------------------------------------
+class Sphere{
+public:
+    Sphere(){}
+    Sphere(glm::vec3 c, float r , glm::vec3 co){
+        radius = r;
+        center = c;
+        color = co;
+    }
+    ~Sphere(){}
+
+    glm::vec3 center;
+    float radius;
+    glm::vec3 color;
+};
+
+class Plane{
+public:
+    Plane(){}
+    Plane(glm::vec3 p, glm::vec3 n , glm::vec3 co){
+        pos = p;
+        normal = n;
+        color = co;
+        distance = 0;
+    }
+    ~Plane(){}
+
+    glm::vec3 pos;
+    float distance;
+    glm::vec3 normal;
+    glm::vec3 color;
+
+    double findIntersection(Ray ray){
+        glm::vec3 rayDir = ray.dir;
+        double a = glm::dot(rayDir,normal);
+        if(a == 0){
+            return -1.0;
+        }
+        else{
+            double b = glm::dot(normal,(ray.origin + (normal * -distance)));
+        }
+    }
+};
+
 //-----------------------------------------------------------------------------------------------
 struct RGBType {
     double r;
@@ -99,8 +126,11 @@ void saveBmp(unsigned int width , unsigned int height ,RGBType *data){
     image.save("Finalsave.jpeg", 0, -1);
 }
 //-----------------------------------------------------------------------------------------------
-void render(){
-    unsigned int width =400;
+
+//-----------------------------------------------------------------------------------------------
+void render()
+{
+    unsigned int width = 400;
     unsigned int height = 400;
 
 //    int dpi = 72;
@@ -113,12 +143,36 @@ void render(){
     c.camRight = glm::vec3(1,0,0);
     c.camDown = glm::vec3(0,-1,0);
 
+    Light l;
+    l.pos = glm::vec3(-7,10,-10);
+    l.col = glm::vec3(1.0,1.0,1.0);
 
+    Sphere sp(glm::vec3(0), 1.0, glm::vec3(0.5,0.5,0.0));
+
+    Plane p(glm::vec3(0.0,-3.0,0.0), glm::vec3(0.0,1.0,0.0), glm::vec3(0.0,0.5,0.0));
+    int aspectRatio = width/height;
+
+    double xamnt , yamnt;
 
     for(unsigned int x = 0 ; x < width ; x++){
         for(unsigned int y = 0 ; y < height; y++){
 
            unsigned int pos = y*width + x;
+
+           if(width > height){
+               xamnt = ((x+0.5)/width) * aspectRatio - (((width - height)/height)/2);
+               yamnt = ((height - y) + 0.5 )/ height;
+           }
+           else if(height > width){
+                xamnt = (x + 0.5) / width;
+                yamnt = (((height - y) + 0.5)/height)/aspectRatio - ((height - width) /  width/2);
+           }
+           else{
+               xamnt = (x + 0.5)/ width;
+               yamnt = ((height - y) + 0.5 / height);
+           }
+
+
 
            if((x > 200 && x < 250)/* && (y > 200 && y < 280)*/){
                pixels[pos].r = 23;
