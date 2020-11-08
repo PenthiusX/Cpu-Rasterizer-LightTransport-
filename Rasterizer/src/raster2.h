@@ -5,6 +5,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <QDebug>
 
 namespace Ras2{
 //-----------------------------------------------------------------------------------------------
@@ -24,7 +25,7 @@ public:
     glm::vec3 camDown;
 
     void lookAt(glm::vec3 lookatPos){
-       camDir = glm::normalize(lookatPos - camPos);
+        camDir = glm::normalize(lookatPos - camPos);
     }
 };
 //-----------------------------------------------------------------------------------------------
@@ -41,19 +42,20 @@ public:
 //-----------------------------------------------------------------------------------------------
 class Ray{
 public:
-    Ray(){
-        origin = glm::vec3(0);
-        dir = glm::vec3(1.0,0.0,0.0);
-    }
-    ~Ray(){};
+    Ray() {}
+    Ray(const glm::vec3 &origin, const glm::vec3 &direction) : orig(origin), dir(direction)
+    {}
 
-    Ray(glm::vec3 o , glm::vec3 d){
-        origin = o;
-        dir = d;
+    glm::vec3 origin() const  { return orig; }
+    glm::vec3 direction() const { return dir; }
+
+    glm::vec3 at(float t) const {
+        return orig + t * dir;
     }
 
-   glm::vec3 origin;
-   glm::vec3 dir;
+public:
+    glm::vec3 orig;
+    glm::vec3 dir;
 };
 //-----------------------------------------------------------------------------------------------
 class Sphere{
@@ -118,6 +120,8 @@ void saveBmp(unsigned int width , unsigned int height ,RGBType *data){
             double green = (data[pos].g)*255;
             double blue = (data[pos].b)*255;
 
+
+
             unsigned char color[3] = {(int)floor(blue),(int)floor(green),(int)floor(red)};
 
             image.setPixel(x, y, qRgb(min((int)color[0], 255),min((int)color[1], 255),min((int)color[2], 255)));
@@ -125,7 +129,6 @@ void saveBmp(unsigned int width , unsigned int height ,RGBType *data){
     }
     image.save("Finalsave.jpeg", 0, -1);
 }
-//-----------------------------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------------------------
 void render()
@@ -133,7 +136,7 @@ void render()
     unsigned int width = 400;
     unsigned int height = 400;
 
-//    int dpi = 72;
+    //    int dpi = 72;
     int n = width * height;
     RGBType *pixels  = new RGBType[n];
 
@@ -154,36 +157,27 @@ void render()
 
     double xamnt , yamnt;
 
-    for(unsigned int x = 0 ; x < width ; x++){
-        for(unsigned int y = 0 ; y < height; y++){
+    for(unsigned int x = 0 ; x < width ; x++)
+    {
+        for(unsigned int y = 0 ; y < height; y++)
+        {
 
-           unsigned int pos = y*width + x;
+            unsigned int pos = y*width + x;
 
-           if(width > height){
-               xamnt = ((x+0.5)/width) * aspectRatio - (((width - height)/height)/2);
-               yamnt = ((height - y) + 0.5 )/ height;
-           }
-           else if(height > width){
-                xamnt = (x + 0.5) / width;
-                yamnt = (((height - y) + 0.5)/height)/aspectRatio - ((height - width) /  width/2);
-           }
-           else{
-               xamnt = (x + 0.5)/ width;
-               yamnt = ((height - y) + 0.5 / height);
-           }
+            pixels[pos].r = double(x) / (width-1);
+            pixels[pos].g = double(y) / (height-1);
+            pixels[pos].b = 0.25;
 
-
-
-           if((x > 200 && x < 250)/* && (y > 200 && y < 280)*/){
-               pixels[pos].r = 23;
-               pixels[pos].g = 222;
-               pixels[pos].b = 10;
-           }
-           else{
-               pixels[pos].r = 100;
-               pixels[pos].g = 100;
-               pixels[pos].b = 100;
-           }
+//            if((x > 200 && x < 250)/* && (y > 200 && y < 280)*/){
+//                pixels[pos].r = 23;
+//                pixels[pos].g = 222;
+//                pixels[pos].b = 10;
+//            }
+//            else{
+//                pixels[pos].r = 100;
+//                pixels[pos].g = 100;
+//                pixels[pos].b = 100;
+//            }
 
         }
     }
