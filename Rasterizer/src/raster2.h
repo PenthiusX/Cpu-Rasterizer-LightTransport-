@@ -11,22 +11,17 @@ namespace Ras2{
 //-----------------------------------------------------------------------------------------------
 class Cam {
 public:
-    Cam(){
-        camPos = glm::vec3(0);
-        camDir = glm::vec3(0,0,1);//direction camera is looking at
-        camRight = glm::vec3(0);
-        camDown = glm::vec3(0);
-    }
-    ~Cam(){};
+    Cam();
+    ~Cam();
 
-    glm::vec3 camPos;
-    glm::vec3 camDir;
-    glm::vec3 camRight;
-    glm::vec3 camDown;
+    float viewportHeight = 2.0;
+    float viewportWidth;
+    float focalLength  = 1.0;
 
-    void lookAt(glm::vec3 lookatPos){
-        camDir = glm::normalize(lookatPos - camPos);
-    }
+    glm::vec3 origin;
+    glm::vec3 horizontal;
+    glm::vec3 vertical;
+
 };
 //-----------------------------------------------------------------------------------------------
 class Light{
@@ -43,6 +38,7 @@ public:
 class Ray{
 public:
     Ray() {}
+    Ray(const Ray &r){orig = r.origin(); dir = r.direction()}
     Ray(const glm::vec3 &origin, const glm::vec3 &direction) : orig(origin), dir(direction)
     {}
 
@@ -73,33 +69,6 @@ public:
     glm::vec3 color;
 };
 
-class Plane{
-public:
-    Plane(){}
-    Plane(glm::vec3 p, glm::vec3 n , glm::vec3 co){
-        pos = p;
-        normal = n;
-        color = co;
-        distance = 0;
-    }
-    ~Plane(){}
-
-    glm::vec3 pos;
-    float distance;
-    glm::vec3 normal;
-    glm::vec3 color;
-
-    double findIntersection(Ray ray){
-        glm::vec3 rayDir = ray.dir;
-        double a = glm::dot(rayDir,normal);
-        if(a == 0){
-            return -1.0;
-        }
-        else{
-            double b = glm::dot(normal,(ray.origin + (normal * -distance)));
-        }
-    }
-};
 
 //-----------------------------------------------------------------------------------------------
 struct RGBType {
@@ -120,8 +89,6 @@ void saveBmp(unsigned int width , unsigned int height ,RGBType *data){
             double green = (data[pos].g)*255;
             double blue = (data[pos].b)*255;
 
-
-
             unsigned char color[3] = {(int)floor(blue),(int)floor(green),(int)floor(red)};
 
             image.setPixel(x, y, qRgb(min((int)color[0], 255),min((int)color[1], 255),min((int)color[2], 255)));
@@ -133,26 +100,12 @@ void saveBmp(unsigned int width , unsigned int height ,RGBType *data){
 //-----------------------------------------------------------------------------------------------
 void render()
 {
-    unsigned int width = 400;
-    unsigned int height = 400;
+    unsigned int width = 640;
+    unsigned int height = 480;
 
-    //    int dpi = 72;
     int n = width * height;
     RGBType *pixels  = new RGBType[n];
 
-    Cam c;
-    c.camPos = glm::vec3(3,1.5,-4);
-    c.lookAt(glm::vec3(0));
-    c.camRight = glm::vec3(1,0,0);
-    c.camDown = glm::vec3(0,-1,0);
-
-    Light l;
-    l.pos = glm::vec3(-7,10,-10);
-    l.col = glm::vec3(1.0,1.0,1.0);
-
-    Sphere sp(glm::vec3(0), 1.0, glm::vec3(0.5,0.5,0.0));
-
-    Plane p(glm::vec3(0.0,-3.0,0.0), glm::vec3(0.0,1.0,0.0), glm::vec3(0.0,0.5,0.0));
     int aspectRatio = width/height;
 
     double xamnt , yamnt;
@@ -164,9 +117,13 @@ void render()
 
             unsigned int pos = y*width + x;
 
-            pixels[pos].r = double(x) / (width-1);
-            pixels[pos].g = double(y) / (height-1);
-            pixels[pos].b = 0.25;
+            auto r = double(x) / (width-1);
+            auto g = double(y) / (height-1);
+            auto b = 0.25;
+
+            pixels[pos].r = static_cast<int>(255.999 * r);
+            pixels[pos].g = static_cast<int>(255.999 * g);
+            pixels[pos].b = static_cast<int>(255.999 * b);
 
 //            if((x > 200 && x < 250)/* && (y > 200 && y < 280)*/){
 //                pixels[pos].r = 23;
@@ -178,7 +135,6 @@ void render()
 //                pixels[pos].g = 100;
 //                pixels[pos].b = 100;
 //            }
-
         }
     }
     saveBmp(width,height,pixels);

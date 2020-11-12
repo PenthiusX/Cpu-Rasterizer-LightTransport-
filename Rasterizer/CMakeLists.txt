@@ -47,7 +47,7 @@ else()
     ${SRC_DIR}/mainwindow.cpp
     ${SRC_DIR}/mainwindow.h
     ${SRC_DIR}/mainwindow.ui
-    ${SRC_DIR}/ray.h
+    ${SRC_DIR}/raster1.h
     ${SRC_DIR}/raster2.h
   )
 endif()
