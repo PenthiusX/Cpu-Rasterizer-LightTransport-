@@ -38,7 +38,7 @@ public:
 class Ray{
 public:
     Ray() {}
-    Ray(const Ray &r){orig = r.origin(); dir = r.direction()}
+    Ray(const Ray &r){orig = r.origin(); dir = r.direction();}
     Ray(const glm::vec3 &origin, const glm::vec3 &direction) : orig(origin), dir(direction)
     {}
 
@@ -77,12 +77,16 @@ struct RGBType {
     double b;
 };
 //-----------------------------------------------------------------------------------------------
+
+float clip(int n, int lower, int upper) {
+  return std::max(lower, std::min(n, upper));
+}
 void saveBmp(unsigned int width , unsigned int height ,RGBType *data){
     QImage image(width,height, QImage::Format_RGB32);
 
-    for (int x = 0; x < width; x++) {
-        for (int y = 0; y < height; y++) {
-            unsigned int pos = y * width + x;
+    for (int x = 0; x < height; x++) {
+        for (int y = 0; y < width; y++) {
+            unsigned int pos = y * height + x;
             RGBType rgb = data[pos];
 
             double red = (data[pos].r)*255;
@@ -91,7 +95,7 @@ void saveBmp(unsigned int width , unsigned int height ,RGBType *data){
 
             unsigned char color[3] = {(int)floor(blue),(int)floor(green),(int)floor(red)};
 
-            image.setPixel(x, y, qRgb(min((int)color[0], 255),min((int)color[1], 255),min((int)color[2], 255)));
+            image.setPixel(x, y, qRgb(clip((int)color[0],0,255),clip((int)color[1],0, 255),clip((int)color[2],0, 255)));
         }
     }
     image.save("Finalsave.jpeg", 0, -1);
@@ -100,44 +104,38 @@ void saveBmp(unsigned int width , unsigned int height ,RGBType *data){
 //-----------------------------------------------------------------------------------------------
 void render()
 {
-    unsigned int width = 640;
-    unsigned int height = 480;
+    unsigned int width = 50;
+    unsigned int height = 50;
 
-    int n = width * height;
-    RGBType *pixels  = new RGBType[n];
+//    int n = width * height;
+//    RGBType *pixels  = new RGBType[n];
 
     int aspectRatio = width/height;
 
-    double xamnt , yamnt;
+     QImage image(width,height, QImage::Format_RGB32);
 
-    for(unsigned int x = 0 ; x < width ; x++)
+//    Ray r(glm::vec3(0),glm::vec3(0));
+//    Ray r1 = r;
+
+    for(unsigned int x = height; x > 0 ; x--)//starts from max heights // topLeft edge // and moves to 0 bottom left
     {
-        for(unsigned int y = 0 ; y < height; y++)
+        for(unsigned int y = 0 ; y < width; ++y)
         {
+//            unsigned int pos = y * height + x;
 
-            unsigned int pos = y*width + x;
-
-            auto r = double(x) / (width-1);
-            auto g = double(y) / (height-1);
+            auto r = double(x) / (height-1);
+            auto g = double(y) / (width-1);
             auto b = 0.25;
 
-            pixels[pos].r = static_cast<int>(255.999 * r);
-            pixels[pos].g = static_cast<int>(255.999 * g);
-            pixels[pos].b = static_cast<int>(255.999 * b);
+            int ir = static_cast<int>(255.999 * r);
+            int ig = static_cast<int>(255.999 * g);
+            int ib = static_cast<int>(255.999 * b);
 
-//            if((x > 200 && x < 250)/* && (y > 200 && y < 280)*/){
-//                pixels[pos].r = 23;
-//                pixels[pos].g = 222;
-//                pixels[pos].b = 10;
-//            }
-//            else{
-//                pixels[pos].r = 100;
-//                pixels[pos].g = 100;
-//                pixels[pos].b = 100;
-//            }
+            image.setPixel(x, y, qRgb(clip((int)ir,0,255),clip((int)ig,0, 255),clip((int)ib,0, 255)));
         }
     }
-    saveBmp(width,height,pixels);
+//    saveBmp(width,height,pixels);
+    image.save("Finalsave.jpeg", 0, -1);
 }
 //-----------------------------------------------------------------------------------------------
 }
