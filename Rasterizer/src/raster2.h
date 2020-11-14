@@ -104,8 +104,8 @@ void saveBmp(unsigned int width , unsigned int height ,RGBType *data){
 //-----------------------------------------------------------------------------------------------
 void render()
 {
-    unsigned int width = 50;
-    unsigned int height = 50;
+    unsigned int width = 400;
+    unsigned int height = 200;
 
 //    int n = width * height;
 //    RGBType *pixels  = new RGBType[n];
@@ -117,26 +117,41 @@ void render()
 //    Ray r(glm::vec3(0),glm::vec3(0));
 //    Ray r1 = r;
 
-    for(unsigned int x = height; x > 0 ; x--)//starts from max heights // topLeft edge // and moves to 0 bottom left
+    for(unsigned int y = height ; y > 0 ; y--)//starts from max heights // topLeft edge // and moves to 0 bottom left
     {
-        for(unsigned int y = 0 ; y < width; ++y)
+        for(unsigned int x = 0 ; x < width; x++)
         {
 //            unsigned int pos = y * height + x;
 
-            auto r = double(x) / (height-1);
-            auto g = double(y) / (width-1);
+            auto r = double(x) / (width-1);
+            auto g = double(y) / (height-1);
             auto b = 0.25;
+
+            if(x < 5 && x > 2 /*&& y < 200 && y > 150*/)
+            {
+                r = 0.0;
+                g = 1.0;
+                b = 1.0;
+            }
+
+            if(y < 5 && y > 2 /*&& y < 200 && y > 150*/)
+            {
+                r = 0.0;
+                g = 1.0;
+                b = 1.0;
+            }
 
             int ir = static_cast<int>(255.999 * r);
             int ig = static_cast<int>(255.999 * g);
             int ib = static_cast<int>(255.999 * b);
 
-            image.setPixel(x, y, qRgb(clip((int)ir,0,255),clip((int)ig,0, 255),clip((int)ib,0, 255)));
+            image.setPixel(x,y, qRgb(clip((int)ir,0,255),clip((int)ig,0, 255),clip((int)ib,0, 255)));
         }
     }
 //    saveBmp(width,height,pixels);
     image.save("Finalsave.jpeg", 0, -1);
+    qInfo() << "Debugbreak";
 }
-//-----------------------------------------------------------------------------------------------
+//--- --------------------------------------------------------------------------------------------
 }
 
