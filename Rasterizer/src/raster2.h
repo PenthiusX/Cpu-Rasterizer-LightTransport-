@@ -11,14 +11,14 @@ namespace Ras2{
 //-----------------------------------------------------------------------------------------------
 class Cam {
 public:
-    Cam();
-    ~Cam();
+    Cam(){}
+    ~Cam(){}
 
     float viewportHeight = 2.0;
     float viewportWidth;
     float focalLength  = 1.0;
 
-    glm::vec3 origin;
+    glm::vec3 origin = glm::vec3(0);
     glm::vec3 horizontal;
     glm::vec3 vertical;
 
@@ -102,50 +102,48 @@ void saveBmp(unsigned int width , unsigned int height ,RGBType *data){
 }
 
 //-----------------------------------------------------------------------------------------------
+glm::vec3 raycolor(const Ray& r) {
+    glm::vec3 unit_direction = glm::normalize(r.direction());
+    float t = (unit_direction.y + 1) * 0.5;
+    return glm::vec3(1.0-t)*glm::vec3(1.0, 1.0, 1.0) + glm::vec3(t)*glm::vec3(0.5, 0.7, 1.0);
+}
+
 void render()
 {
+
+    const float aspectRatio = 16.0/9.0;
     unsigned int width = 400;
-    unsigned int height = 200;
+    unsigned int height = 400;//static_cast<int>(width / aspectRatio);
 
-//    int n = width * height;
-//    RGBType *pixels  = new RGBType[n];
+    QImage image(width,height, QImage::Format_RGB32);
 
-    int aspectRatio = width/height;
+    //Camera
+     Cam c;
+     c.horizontal = glm::vec3(width,0,0);
+     c.vertical = glm::vec3(0,height,0);
 
-     QImage image(width,height, QImage::Format_RGB32);
+     glm::vec3 lowerLeftCorner = c.origin - c.horizontal*glm::vec3(0.5) - c.vertical*glm::vec3(0.5) - glm::vec3(0, 0, c.focalLength);
 
-//    Ray r(glm::vec3(0),glm::vec3(0));
-//    Ray r1 = r;
 
-    for(unsigned int y = height ; y > 0 ; y--)//starts from max heights // topLeft edge // and moves to 0 bottom left
+    for(unsigned int y = 0 ; y < height ; y++)//starts from max heights // topLeft edge // and moves to 0 bottom left
     {
         for(unsigned int x = 0 ; x < width; x++)
         {
 //            unsigned int pos = y * height + x;
 
-            auto r = double(x) / (width-1);
-            auto g = double(y) / (height-1);
-            auto b = 0.25;
+            float u = float(x) / (width);
+            float v = float(y) / (height);
 
-            if(x < 5 && x > 2 /*&& y < 200 && y > 150*/)
-            {
-                r = 0.0;
-                g = 1.0;
-                b = 1.0;
-            }
+            Ray r(c.origin,lowerLeftCorner + glm::vec3(u)*c.horizontal + glm::vec3(v)*c.vertical - c.origin);
+            glm::vec3 col = raycolor(r);
 
-            if(y < 5 && y > 2 /*&& y < 200 && y > 150*/)
-            {
-                r = 0.0;
-                g = 1.0;
-                b = 1.0;
-            }
+            int ir = static_cast<int>(255.999 * col.x);
+            int ig = static_cast<int>(255.999 * col.y);
+            int ib = static_cast<int>(255.999 * col.z);
 
-            int ir = static_cast<int>(255.999 * r);
-            int ig = static_cast<int>(255.999 * g);
-            int ib = static_cast<int>(255.999 * b);
-
-            image.setPixel(x,y, qRgb(clip((int)ir,0,255),clip((int)ig,0, 255),clip((int)ib,0, 255)));
+//            image.setPixel(x,y, qRgb(clip((int)ir,0,255),clip((int)ig,0, 255),clip((int)ib,0, 255)));
+            image.setPixel(x,y, qRgb(ir,ig,ib));
+            //image.save("Finalsave.jpeg", 0, -1);
         }
     }
 //    saveBmp(width,height,pixels);

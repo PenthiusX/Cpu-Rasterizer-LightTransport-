@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
 //   std::thread ru =std::thread(render(1,400,10,1.5),this);
 //   if(ru.joinable()){ru.detach();}
 //    ::render(1,400,10,1.5);
-    ::Ras2::render();
+    Ras2::render();
 
     QApplication a(argc, argv);
     MainWindow w;
