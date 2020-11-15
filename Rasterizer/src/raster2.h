@@ -79,57 +79,77 @@ struct RGBType {
 //-----------------------------------------------------------------------------------------------
 
 float clip(int n, int lower, int upper) {
-  return std::max(lower, std::min(n, upper));
+    return std::max(lower, std::min(n, upper));
 }
-void saveBmp(unsigned int width , unsigned int height ,RGBType *data){
-    QImage image(width,height, QImage::Format_RGB32);
+//void saveBmp(unsigned int width , unsigned int height ,RGBType *data){
+//    QImage image(width,height, QImage::Format_RGB32);
 
-    for (int x = 0; x < height; x++) {
-        for (int y = 0; y < width; y++) {
-            unsigned int pos = y * height + x;
-            RGBType rgb = data[pos];
+//    for (int x = 0; x < height; x++) {
+//        for (int y = 0; y < width; y++) {
+//            unsigned int pos = y * height + x;
+//            RGBType rgb = data[pos];
 
-            double red = (data[pos].r)*255;
-            double green = (data[pos].g)*255;
-            double blue = (data[pos].b)*255;
+//            double red = (data[pos].r)*255;
+//            double green = (data[pos].g)*255;
+//            double blue = (data[pos].b)*255;
 
-            unsigned char color[3] = {(int)floor(blue),(int)floor(green),(int)floor(red)};
+//            unsigned char color[3] = {(int)floor(blue),(int)floor(green),(int)floor(red)};
 
-            image.setPixel(x, y, qRgb(clip((int)color[0],0,255),clip((int)color[1],0, 255),clip((int)color[2],0, 255)));
-        }
-    }
-    image.save("Finalsave.jpeg", 0, -1);
-}
+//            image.setPixel(x, y, qRgb(clip((int)color[0],0,255),clip((int)color[1],0, 255),clip((int)color[2],0, 255)));
+//        }
+//    }
+//    image.save("Finalsave.jpeg", 0, -1);
+//}
 
 //-----------------------------------------------------------------------------------------------
+
+
+bool hit_sphere(const glm::vec3& center, float radius, const Ray& r) {
+    glm::vec3 rdir = r.direction();
+    glm::vec3 oc = r.origin() - center;
+    float a = glm::dot(rdir,rdir);
+    float b = 2.0 * glm::dot(oc, rdir);
+    float c = dot(oc, oc) - radius*radius;
+    float discriminant = b*b - 4*a*c;
+    return (discriminant > 0);
+}
+
 glm::vec3 raycolor(const Ray& r) {
+
+//    if(hit_sphere(glm::vec3(100.0,100.0,0.0),4.5,r)){
+//        return glm::vec3(1, 0, 0);
+//    }
+    float dist = glm::distance(glm::vec3(-50,50,0),r.direction());
+    if(dist < 20.0){
+        return glm::vec3(1, 0, 0);
+    }
     glm::vec3 unit_direction = glm::normalize(r.direction());
     float t = (unit_direction.y + 1) * 0.5;
     return glm::vec3(1.0-t)*glm::vec3(1.0, 1.0, 1.0) + glm::vec3(t)*glm::vec3(0.5, 0.7, 1.0);
 }
-
 void render()
 {
 
     const float aspectRatio = 16.0/9.0;
-    unsigned int width = 400;
-    unsigned int height = 400;//static_cast<int>(width / aspectRatio);
+    unsigned int width = 100;
+    unsigned int height = 100;//static_cast<int>(width / aspectRatio);
 
     QImage image(width,height, QImage::Format_RGB32);
 
     //Camera
-     Cam c;
-     c.horizontal = glm::vec3(width,0,0);
-     c.vertical = glm::vec3(0,height,0);
+    Cam c;
+    c.origin = glm::vec3(0.0,0.0,5.0);
+    c.horizontal = glm::vec3(width,0,0);
+    c.vertical = glm::vec3(0,height,0);
 
-     glm::vec3 lowerLeftCorner = c.origin - c.horizontal*glm::vec3(0.5) - c.vertical*glm::vec3(0.5) - glm::vec3(0, 0, c.focalLength);
+    glm::vec3 lowerLeftCorner = c.origin - c.horizontal*glm::vec3(0.5) - c.vertical*glm::vec3(0.5) - glm::vec3(0, 0, c.focalLength);
 
 
     for(unsigned int y = 0 ; y < height ; y++)//starts from max heights // topLeft edge // and moves to 0 bottom left
     {
         for(unsigned int x = 0 ; x < width; x++)
         {
-//            unsigned int pos = y * height + x;
+            //            unsigned int pos = y * height + x;
 
             float u = float(x) / (width);
             float v = float(y) / (height);
@@ -141,12 +161,12 @@ void render()
             int ig = static_cast<int>(255.999 * col.y);
             int ib = static_cast<int>(255.999 * col.z);
 
-//            image.setPixel(x,y, qRgb(clip((int)ir,0,255),clip((int)ig,0, 255),clip((int)ib,0, 255)));
+            //            image.setPixel(x,y, qRgb(clip((int)ir,0,255),clip((int)ig,0, 255),clip((int)ib,0, 255)));
             image.setPixel(x,y, qRgb(ir,ig,ib));
             //image.save("Finalsave.jpeg", 0, -1);
         }
     }
-//    saveBmp(width,height,pixels);
+    //    saveBmp(width,height,pixels);
     image.save("Finalsave.jpeg", 0, -1);
     qInfo() << "Debugbreak";
 }
