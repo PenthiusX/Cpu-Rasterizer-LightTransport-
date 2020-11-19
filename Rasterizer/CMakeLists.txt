@@ -36,10 +36,12 @@ add_definitions(${GLM_DIR}/glm)
 
 if(ANDROID)
   add_library(Rasterizer SHARED
-    main.cpp
-    mainwindow.cpp
-    mainwindow.h
-    mainwindow.ui
+      ${SRC_DIR}/main.cpp
+      ${SRC_DIR}/mainwindow.cpp
+      ${SRC_DIR}/mainwindow.h
+      ${SRC_DIR}/mainwindow.ui
+      ${SRC_DIR}/raster1.h
+      ${SRC_DIR}/raster2.h
   )
 else()
   add_executable(Rasterizer

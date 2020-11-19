@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include <QApplication>
 
-//#include "raster1.h"
+#include "raster1.h"
 #include "raster2.h"
 #include <thread>
 
@@ -11,6 +11,7 @@ int main(int argc, char *argv[])
 //   std::thread ru =std::thread(render(1,400,10,1.5),this);
 //   if(ru.joinable()){ru.detach();}
 //    ::render(1,400,10,1.5);
+
     Ras2::render();
 
     QApplication a(argc, argv);

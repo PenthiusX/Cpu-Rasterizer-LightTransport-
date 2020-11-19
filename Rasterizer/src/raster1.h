@@ -30,7 +30,7 @@
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
-
+namespace Ras1{
 int width, height;
 const double inf = 1e9;
 const double eps = 1e-4;
@@ -257,11 +257,11 @@ void imageOutput(Vec **pix)
             image.setPixel(col, row, qRgb(min((int)pix[col][row].x, 255),min((int)pix[col][row].y, 255),min((int)pix[col][row].z, 255)));
         }
     }
-    image.save("Finalsave.jpeg", 0, -1);
+    image.save("Ras1.jpeg", 0, -1);
 }
 
-void render(int id, int size, int spp, double refr_index) {
-
+void render(int id, int size, int spp, double refr_index)
+{
     srand(time(NULL));
     pl params;
 
@@ -327,3 +327,5 @@ void render(int id, int size, int spp, double refr_index) {
     }
     imageOutput(pix);
 }
+}
+
