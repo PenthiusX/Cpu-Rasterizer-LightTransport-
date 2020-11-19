@@ -170,9 +170,7 @@ Vec camcr(const double x, const double y) {
     double h = height;
     float fovx = PI / 4;
     float fovy = (h / w)*fovx;
-    return Vec(((2 * x - w) / w)*tan(fovx),
-        ((2 * y - h) / h)*tan(fovy),
-               -1.0);
+    return Vec(((2 * x - w) / w)*tan(fovx),((2 * y - h) / h)*tan(fovy),-1.0);
 }
 
 // a messed up sampling function (at least in this context).
@@ -302,11 +300,15 @@ void render(int id, int size, int spp, double refr_index)
 
     bool running = true;
 
-    for (int s = 1; s < spp; s++) {
+    for (int s = 1; s < spp; s++)
+    {
     #pragma omp parallel for schedule(dynamic) firstprivate(hal,hal2)
-        for (int i = 0; i < width; i++) {
-            for (int j = 0; j < height; j++) {
-                if (running) {
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                if (running)
+                {
                     Vec c;
                     Ray ray;
                     ray.o = (Vec(0, 0, 0));

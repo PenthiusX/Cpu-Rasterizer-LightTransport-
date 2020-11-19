@@ -120,12 +120,12 @@ bool hit_sphere(const glm::vec3& center, float radius, const Ray& r) {
     return (discriminant > 0);
 }
 
-glm::vec3 raycolor(const Ray& r){
+glm::vec3 traceColor(const Ray& r){
 
     if(hit_sphere(glm::vec3(0.0,0.0,-1.0),0.5,r)){
         return glm::vec3(1, 0, 0);
     }
-    if(hit_sphere(glm::vec3(1.0,1.0,-2.0),0.3,r)){
+    if(hit_sphere(glm::vec3(2.0,2.0,-2.0),0.2,r)){
         return glm::vec3(0.5, 0.5, 0);
     }
 //    float dist = glm::distance(glm::vec3(25,25,0),r.direction());
@@ -140,21 +140,22 @@ glm::vec3 raycolor(const Ray& r){
 void render()
 {
     const float aspectRatio = 16.0/9.0;
-    unsigned int width = 100;
-    unsigned int height = 100;//static_cast<int>(width / aspectRatio);
+    unsigned int width = 1024;
+    unsigned int height = static_cast<int>(width / aspectRatio);
 
     QImage image(width,height, QImage::Format_RGB32);
 
-    for(uint t = 0 ; t < 100 ; t++)
+    //Camera
+    Cam c;
+    c.origin = glm::vec3(0.0,0.0,3);
+    c.horizontal = glm::vec3(width,0,0);
+    c.vertical = glm::vec3(0,height,0);
+    c.focalLength = width/2;
+
+    for(uint t = 0 ; t < 30 ; t++)
     {   //animation debug loop
 
-        //Camera
-        Cam c;
-        c.origin = glm::vec3(t*0.2,0.0,0);
-        c.horizontal = glm::vec3(width,0,0);
-        c.vertical = glm::vec3(0,height,0);
-        c.focalLength = 25;
-
+        c.origin.x = t*0.1;
         glm::vec3 lowerLeftCorner = c.origin - (c.horizontal*glm::vec3(0.5)) - (c.vertical*glm::vec3(0.5)) - glm::vec3(0, 0, c.focalLength);
 
         for(/*unsigned int y = 0 ; y < height ; y++*/unsigned int y = height ; y > 0 ; y--)//starts from max heights // topLeft edge // and moves to 0 bottom left
@@ -164,12 +165,12 @@ void render()
                 float u = float(x) / (width);
                 float v = float(y) / (height);
 
-                glm::vec3 dir = lowerLeftCorner + (glm::vec3(u)*c.horizontal) + (glm::vec3(v)*c.vertical) - c.origin;
+                glm::vec3 dir = glm::normalize(lowerLeftCorner + (glm::vec3(u)*c.horizontal) + (glm::vec3(v)*c.vertical) - c.origin);
                 Ray r(c.origin,dir);
-                glm::vec3 col = raycolor(r);
+                glm::vec3 col = traceColor(r);
 
-//                Ray r(glm::vec3(x,y,0),glm::vec3(0,0,-1));
-//                glm::vec3 col = raycolor(r);
+//              Ray r(glm::vec3(x,y,2),glm::vec3(0,0,-1));
+//              glm::vec3 col = raycolor(r);
 
                 int ir = static_cast<int>(255.999 * col.x);
                 int ig = static_cast<int>(255.999 * col.y);
@@ -182,8 +183,9 @@ void render()
         }
 
         //    saveBmp(width,height,pixels);
-        image.save("Ras2.jpeg", 0, -1);
-        qInfo() << "Debugbreak";
+        image.save(QString::number(t) + "Ras2.jpeg", 0, -1);
+        if(t == 29)
+            qInfo() << "Debugbreak";
     }
 }
 //--- --------------------------------------------------------------------------------------------
