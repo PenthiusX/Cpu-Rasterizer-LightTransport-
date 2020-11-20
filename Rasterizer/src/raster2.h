@@ -60,6 +60,13 @@ public:
     glm::vec3 dir;
 };
 //-----------------------------------------------------------------------------------------------
+
+struct hit_record {
+    glm::vec3 p;
+    glm::vec3 normal;
+    double t;
+};
+//-----------------------------------------------------------------------------------------------
 class Sphere{
 public:
     Sphere(){}
@@ -70,6 +77,32 @@ public:
     }
     ~Sphere(){}
 
+    bool hit(Ray &r,float t_min,float t_max,hit_record& rec){
+
+            glm::vec3 oc = r.origin() - center;
+            float a = glm::length(r.direction()) * glm::length(r.direction());
+            float half_b = dot(oc, r.direction());
+            float c = (glm::length(oc)*glm::length(oc)) - radius*radius;
+
+            float discriminant = half_b*half_b - a*c;
+            if (discriminant < 0) return false;
+            float sqrtd = sqrt(discriminant);
+
+            // Find the nearest root that lies in the acceptable range.
+            float root = (-half_b - sqrtd) / a;
+            if (root < t_min || t_max < root) {
+                root = (-half_b + sqrtd) / a;
+                if (root < t_min || t_max < root)
+                    return false;
+            }
+
+            rec.t = root;
+            rec.p = r.at(rec.t);
+            rec.normal = (rec.p - center) / radius;
+
+            return true;
+    }
+
     glm::vec3 center;
     float radius;
     glm::vec3 color;
@@ -77,64 +110,45 @@ public:
 
 
 //-----------------------------------------------------------------------------------------------
-struct RGBType {
-    double r;
-    double g;
-    double b;
-};
-//-----------------------------------------------------------------------------------------------
 
 float clip(int n, int lower, int upper) {
     return std::max(lower, std::min(n, upper));
 }
-//void saveBmp(unsigned int width , unsigned int height ,RGBType *data){
-//    QImage image(width,height, QImage::Format_RGB32);
-
-//    for (int x = 0; x < height; x++) {
-//        for (int y = 0; y < width; y++) {
-//            unsigned int pos = y * height + x;
-//            RGBType rgb = data[pos];
-
-//            double red = (data[pos].r)*255;
-//            double green = (data[pos].g)*255;
-//            double blue = (data[pos].b)*255;
-
-//            unsigned char color[3] = {(int)floor(blue),(int)floor(green),(int)floor(red)};
-
-//            image.setPixel(x, y, qRgb(clip((int)color[0],0,255),clip((int)color[1],0, 255),clip((int)color[2],0, 255)));
-//        }
-//    }
-//    image.save("Finalsave.jpeg", 0, -1);
-//}
-
-//-----------------------------------------------------------------------------------------------
 
 
-bool hit_sphere(const glm::vec3& center, float radius, const Ray& r) {
-    glm::vec3 rdir = r.direction();
+float hit_sphere(const glm::vec3& center, float radius, const Ray& r) {
+    glm::vec3 rdir = glm::normalize(r.direction());
     glm::vec3 oc = r.origin() - center;
     float a = glm::dot(rdir,rdir);
     float b = 2.0 * glm::dot(oc, rdir);
     float c = dot(oc, oc) - radius*radius;
     float discriminant = b*b - 4*a*c;
     return (discriminant > 0);
+
+    if (discriminant < 0) {
+        return -1.0;
+    } else {
+        return (-b - sqrt(discriminant) ) / (2.0*a);
+    }
 }
 
 glm::vec3 traceColor(const Ray& r){
 
-    if(hit_sphere(glm::vec3(0.0,0.0,-1.0),0.5,r)){
-        return glm::vec3(1, 0, 0);
+//the render order overlap is top down // first return will overlap the second
+    float t = hit_sphere(glm::vec3(0,0,-1), 1.5, r);
+    if (t > 0.0) {
+        glm::vec3 N =  glm::normalize(r.at(t) - glm::vec3(0,0,-1));
+        return glm::vec3(0.5)*(glm::vec3(1)+N);
     }
-    if(hit_sphere(glm::vec3(2.0,2.0,-2.0),0.2,r)){
+
+    if(hit_sphere(glm::vec3(0.5,1.0,-2.5),1.3,r) > 0){
         return glm::vec3(0.5, 0.5, 0);
     }
-//    float dist = glm::distance(glm::vec3(25,25,0),r.direction());
-//    if(dist < 20.0){
-//        return glm::vec3(1, 0, 0);
-//    }
+
+
     glm::vec3 unit_direction = glm::normalize(r.direction());
-    float t = (unit_direction.y + 1) * 0.5;
-    return glm::vec3(1.0-t)*glm::vec3(1.0, 1.0, 1.0) + glm::vec3(t)*glm::vec3(0.5, 0.7, 1.0);
+    float t1 = (unit_direction.y + 1) * 0.5;
+    return glm::vec3(1.0-t1)*glm::vec3(1.0, 1.0, 1.0) + glm::vec3(t1)*glm::vec3(0.5, 0.7, 1.0);
 }
 
 void render()
@@ -152,7 +166,8 @@ void render()
     c.vertical = glm::vec3(0,height,0);
     c.focalLength = width/2;
 
-    for(uint t = 0 ; t < 30 ; t++)
+    uint frames = 10;
+    for(uint t = 0 ; t < frames ; t++)
     {   //animation debug loop
 
         c.origin.x = t*0.1;
@@ -169,8 +184,8 @@ void render()
                 Ray r(c.origin,dir);
                 glm::vec3 col = traceColor(r);
 
-//              Ray r(glm::vec3(x,y,2),glm::vec3(0,0,-1));
-//              glm::vec3 col = raycolor(r);
+                //              Ray r(glm::vec3(x,y,2),glm::vec3(0,0,-1));
+                //              glm::vec3 col = raycolor(r);
 
                 int ir = static_cast<int>(255.999 * col.x);
                 int ig = static_cast<int>(255.999 * col.y);
@@ -184,7 +199,7 @@ void render()
 
         //    saveBmp(width,height,pixels);
         image.save(QString::number(t) + "Ras2.jpeg", 0, -1);
-        if(t == 29)
+        if(t == frames-1)
             qInfo() << "Debugbreak";
     }
 }
