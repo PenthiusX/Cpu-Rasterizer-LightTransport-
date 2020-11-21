@@ -65,6 +65,14 @@ struct hit_record {
     glm::vec3 p;
     glm::vec3 normal;
     double t;
+
+    bool front_face;
+
+    void set_face_normal(const Ray& r, const glm::vec3& outward_normal)
+    {
+        front_face = glm::dot(r.direction(), outward_normal) < 0;
+        normal = front_face ? outward_normal : -outward_normal;
+    }
 };
 //-----------------------------------------------------------------------------------------------
 class Sphere{
@@ -96,9 +104,13 @@ public:
                     return false;
             }
 
+            //record the info per hit
             rec.t = root;
             rec.p = r.at(rec.t);
             rec.normal = (rec.p - center) / radius;
+            //record the normal inward or outward based on where the ray is ats
+            glm::vec3 outward_normal = (rec.p - center) / radius;
+            rec.set_face_normal(r, outward_normal);
 
             return true;
     }
@@ -107,15 +119,13 @@ public:
     float radius;
     glm::vec3 color;
 };
-
-
 //-----------------------------------------------------------------------------------------------
 
 float clip(int n, int lower, int upper) {
     return std::max(lower, std::min(n, upper));
 }
-
-
+//-----------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------
 float hit_sphere(const glm::vec3& center, float radius, const Ray& r) {
     glm::vec3 rdir = glm::normalize(r.direction());
     glm::vec3 oc = r.origin() - center;
@@ -131,7 +141,7 @@ float hit_sphere(const glm::vec3& center, float radius, const Ray& r) {
         return (-b - sqrt(discriminant) ) / (2.0*a);
     }
 }
-
+//-----------------------------------------------------------------------------------------------
 glm::vec3 traceColor(const Ray& r){
 
 //the render order overlap is top down // first return will overlap the second
@@ -141,16 +151,17 @@ glm::vec3 traceColor(const Ray& r){
         return glm::vec3(0.5)*(glm::vec3(1)+N);
     }
 
-    if(hit_sphere(glm::vec3(0.5,1.0,-2.5),1.3,r) > 0){
+    if(hit_sphere(glm::vec3(0.5,1.0,-2.5),1.3,r) > 0)
+    {
         return glm::vec3(0.5, 0.5, 0);
     }
-
 
     glm::vec3 unit_direction = glm::normalize(r.direction());
     float t1 = (unit_direction.y + 1) * 0.5;
     return glm::vec3(1.0-t1)*glm::vec3(1.0, 1.0, 1.0) + glm::vec3(t1)*glm::vec3(0.5, 0.7, 1.0);
 }
-
+//-----------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------
 void render()
 {
     const float aspectRatio = 16.0/9.0;
