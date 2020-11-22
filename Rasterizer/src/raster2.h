@@ -7,13 +7,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <QDebug>
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
-#define RND (2.0*(double)rand()/RAND_MAX-1.0)
-#define RND2 ((double)rand()/RAND_MAX)
-#endif
-
-
 namespace Ras2{
+
+const double infinity = std::numeric_limits<double>::infinity();
+const double pi = 3.1415926535897932385;
 //-----------------------------------------------------------------------------------------------
 class Cam {
 public:
@@ -75,7 +72,14 @@ struct hit_record {
     }
 };
 //-----------------------------------------------------------------------------------------------
-class Sphere{
+class Collider{
+
+public:
+    virtual ~Collider(){};
+    virtual bool hit(Ray &r,float t_min,float t_max,hit_record& rec) = 0;
+};
+
+class Sphere : Collider{
 public:
     Sphere(){}
     Sphere(glm::vec3 c, float r , glm::vec3 co){
@@ -83,7 +87,7 @@ public:
         center = c;
         color = co;
     }
-    ~Sphere(){}
+    virtual ~Sphere(){}
 
     bool hit(Ray &r,float t_min,float t_max,hit_record& rec){
 
@@ -119,6 +123,23 @@ public:
     float radius;
     glm::vec3 color;
 };
+
+class Scene{
+
+public:
+    Scene(){}
+    ~Scene(){
+        for(auto c : colliders){delete c;}
+        colliders.clear();
+    }
+
+    void add(Collider* c){
+        colliders.push_back(c);
+    }
+
+private:
+    std::vector<Collider*> colliders;
+};
 //-----------------------------------------------------------------------------------------------
 
 float clip(int n, int lower, int upper) {
@@ -141,7 +162,7 @@ float hit_sphere(const glm::vec3& center, float radius, const Ray& r) {
         return (-b - sqrt(discriminant) ) / (2.0*a);
     }
 }
-//-----------------------------------------------------------------------------------------------
+
 glm::vec3 traceColor(const Ray& r){
 
 //the render order overlap is top down // first return will overlap the second
@@ -161,6 +182,22 @@ glm::vec3 traceColor(const Ray& r){
     return glm::vec3(1.0-t1)*glm::vec3(1.0, 1.0, 1.0) + glm::vec3(t1)*glm::vec3(0.5, 0.7, 1.0);
 }
 //-----------------------------------------------------------------------------------------------
+void traceAll(Ray &r,float t_min,float t_max,hit_record& rec){
+    hit_record temp_rec;
+       bool hit_anything = false;
+       auto closest_so_far = t_max;
+
+//       for (const auto& object : objects) {
+//           if (object->hit(r, t_min, closest_so_far, temp_rec)) {
+//               hit_anything = true;
+//               closest_so_far = temp_rec.t;
+//               rec = temp_rec;
+//           }
+//       }
+
+//       return hit_anything;
+}
+
 //-----------------------------------------------------------------------------------------------
 void render()
 {
