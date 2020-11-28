@@ -27,7 +27,8 @@ public:
 
 };
 //-----------------------------------------------------------------------------------------------
-class Light{
+class Light
+{
 public:
     Light(){}
     ~Light(){}
@@ -38,7 +39,8 @@ public:
     glm::vec3 col;
 };
 //-----------------------------------------------------------------------------------------------
-class Ray{
+class Ray
+{
 public:
     Ray() {}
     Ray(const Ray &r){orig = r.origin(); dir = r.direction();}
@@ -57,8 +59,8 @@ public:
     glm::vec3 dir;
 };
 //-----------------------------------------------------------------------------------------------
-
-struct hit_record {
+struct hit_record
+{
     glm::vec3 p;
     glm::vec3 normal;
     double t;
@@ -79,7 +81,7 @@ public:
     virtual bool hit(Ray &r,float t_min,float t_max,hit_record& rec) = 0;
 };
 
-class Sphere : Collider{
+class Sphere : public Collider{
 public:
     Sphere(){}
     Sphere(glm::vec3 c, float r , glm::vec3 co){
@@ -88,35 +90,41 @@ public:
         color = co;
     }
     virtual ~Sphere(){}
+    virtual bool hit(Ray &r,float t_min,float t_max, hit_record& rec)
+    {
+//        glm::vec3 oc = r.origin() - center;
+//        float a = glm::length(r.direction()) * glm::length(r.direction());
+//        float half_b = dot(oc, r.direction());
+//        float c = (glm::length(oc)*glm::length(oc)) - radius*radius;
 
-    bool hit(Ray &r,float t_min,float t_max,hit_record& rec){
+//        float discriminant = half_b*half_b - a*c;
+//        if (discriminant < 0) return false;
+//        float sqrtd = sqrt(discriminant);
 
-            glm::vec3 oc = r.origin() - center;
-            float a = glm::length(r.direction()) * glm::length(r.direction());
-            float half_b = dot(oc, r.direction());
-            float c = (glm::length(oc)*glm::length(oc)) - radius*radius;
+//        // Find the nearest root that lies in the acceptable range.
+//        float root = (-half_b - sqrtd) / a;
+//        if (root < t_min || t_max < root) {
+//            root = (-half_b + sqrtd) / a;
+//            if (root < t_min || t_max < root)
+//                return false;
+//        }
+//        //record the info per hit
+//        rec.t = root;
+//        rec.p = r.at(rec.t);
+//        rec.normal = (rec.p - center) / radius;
+//        //record the normal inward or outward based on where the ray is ats
+//        glm::vec3 outward_normal = (rec.p - center) / radius;
+//        rec.set_face_normal(r, outward_normal);
 
-            float discriminant = half_b*half_b - a*c;
-            if (discriminant < 0) return false;
-            float sqrtd = sqrt(discriminant);
+//        return true;
 
-            // Find the nearest root that lies in the acceptable range.
-            float root = (-half_b - sqrtd) / a;
-            if (root < t_min || t_max < root) {
-                root = (-half_b + sqrtd) / a;
-                if (root < t_min || t_max < root)
-                    return false;
-            }
-
-            //record the info per hit
-            rec.t = root;
-            rec.p = r.at(rec.t);
-            rec.normal = (rec.p - center) / radius;
-            //record the normal inward or outward based on where the ray is ats
-            glm::vec3 outward_normal = (rec.p - center) / radius;
-            rec.set_face_normal(r, outward_normal);
-
-            return true;
+        glm::vec3 rdir = glm::normalize(r.direction());
+        glm::vec3 oc = r.origin() - center;
+        float a = glm::dot(rdir,rdir);
+        float b = 2.0 * glm::dot(oc, rdir);
+        float c = dot(oc, oc) - radius*radius;
+        float discriminant = b*b - 4*a*c;
+        return (discriminant > 0);
     }
 
     glm::vec3 center;
@@ -126,6 +134,9 @@ public:
 
 class Scene{
 
+private:
+    std::vector<Collider*> colliders;
+
 public:
     Scene(){}
     ~Scene(){
@@ -133,12 +144,28 @@ public:
         colliders.clear();
     }
 
-    void add(Collider* c){
+    void add(Collider *c){
         colliders.push_back(c);
     }
 
-private:
-    std::vector<Collider*> colliders;
+    //Ray hit check on all scene objects
+    bool isHit(Ray &r , float t_min, float t_max, hit_record& rec)
+    {
+        hit_record temp_rec;
+        bool hit_anything = false;
+        auto closest_so_far = t_max;
+
+        for (uint c = 0 ; c < colliders.size() ; c++)
+        {
+            if (colliders[c]->hit(r, t_min, closest_so_far, temp_rec))
+            {
+                hit_anything = true;
+                closest_so_far = temp_rec.t;
+                rec = temp_rec;
+            }
+        }
+        return hit_anything;
+    }
 };
 //-----------------------------------------------------------------------------------------------
 
@@ -147,14 +174,15 @@ float clip(int n, int lower, int upper) {
 }
 //-----------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------
-float hit_sphere(const glm::vec3& center, float radius, const Ray& r) {
+float hit_sphere(const glm::vec3& center, float radius, const Ray& r)
+{
     glm::vec3 rdir = glm::normalize(r.direction());
     glm::vec3 oc = r.origin() - center;
     float a = glm::dot(rdir,rdir);
     float b = 2.0 * glm::dot(oc, rdir);
     float c = dot(oc, oc) - radius*radius;
     float discriminant = b*b - 4*a*c;
-    return (discriminant > 0);
+    //return (discriminant > 0);
 
     if (discriminant < 0) {
         return -1.0;
@@ -163,9 +191,17 @@ float hit_sphere(const glm::vec3& center, float radius, const Ray& r) {
     }
 }
 
-glm::vec3 traceColor(const Ray& r){
+glm::vec3 traceColor(Ray &r , Scene *s){
 
-//the render order overlap is top down // first return will overlap the second
+
+    hit_record rec;
+    //the render order overlap is top down // first return will overlap the second
+
+
+    if(s->isHit(r,0,infinity,rec)){
+        return glm::vec3(0.5, 0.0, 0);
+    }
+
     float t = hit_sphere(glm::vec3(0,0,-1), 1.5, r);
     if (t > 0.0) {
         glm::vec3 N =  glm::normalize(r.at(t) - glm::vec3(0,0,-1));
@@ -177,28 +213,13 @@ glm::vec3 traceColor(const Ray& r){
         return glm::vec3(0.5, 0.5, 0);
     }
 
+
     glm::vec3 unit_direction = glm::normalize(r.direction());
     float t1 = (unit_direction.y + 1) * 0.5;
     return glm::vec3(1.0-t1)*glm::vec3(1.0, 1.0, 1.0) + glm::vec3(t1)*glm::vec3(0.5, 0.7, 1.0);
 }
 //-----------------------------------------------------------------------------------------------
-void traceAll(Ray &r,float t_min,float t_max,hit_record& rec){
-    hit_record temp_rec;
-       bool hit_anything = false;
-       auto closest_so_far = t_max;
 
-//       for (const auto& object : objects) {
-//           if (object->hit(r, t_min, closest_so_far, temp_rec)) {
-//               hit_anything = true;
-//               closest_so_far = temp_rec.t;
-//               rec = temp_rec;
-//           }
-//       }
-
-//       return hit_anything;
-}
-
-//-----------------------------------------------------------------------------------------------
 void render()
 {
     const float aspectRatio = 16.0/9.0;
@@ -213,6 +234,10 @@ void render()
     c.horizontal = glm::vec3(width,0,0);
     c.vertical = glm::vec3(0,height,0);
     c.focalLength = width/2;
+
+    Scene *s = new Scene();
+    //    Collider* col = new Sphere(glm::vec3(0,0,-1),1.5,glm::vec3(0.5,0.5,1.0));
+    s->add(new Sphere(glm::vec3(0,0,-5.0),0.5,glm::vec3(1.5,0.5,1.0)));
 
     uint frames = 10;
     for(uint t = 0 ; t < frames ; t++)
@@ -230,7 +255,7 @@ void render()
 
                 glm::vec3 dir = glm::normalize(lowerLeftCorner + (glm::vec3(u)*c.horizontal) + (glm::vec3(v)*c.vertical) - c.origin);
                 Ray r(c.origin,dir);
-                glm::vec3 col = traceColor(r);
+                glm::vec3 col = traceColor(r,s);
 
                 //              Ray r(glm::vec3(x,y,2),glm::vec3(0,0,-1));
                 //              glm::vec3 col = raycolor(r);
@@ -250,6 +275,8 @@ void render()
         if(t == frames-1)
             qInfo() << "Debugbreak";
     }
+
+    delete s;
 }
 //--- --------------------------------------------------------------------------------------------
 }
